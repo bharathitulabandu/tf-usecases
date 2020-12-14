@@ -1,0 +1,67 @@
+provider "aws" {
+  access_key = ""
+  secret_key = ""
+  region = "us-east-1"
+}
+
+#creating ec2 instance
+resource "aws_instance" "webserver" {
+  ami           = "ami-04d29b6f966df1537"
+  instance_type = "t2.micro"
+  tags = {
+    Name = "single-web server"
+  }
+  key_name = "terraform"
+  security_groups = [aws_security_group.webserver_sg.name]
+}
+
+#creating a keypair
+resource "aws_key_pair" "tf-keypair" {
+  key_name   = "terraform"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEArL1pz7+iVFJUYS+Or41B8J2JyF34u0WtFBhpy77bdmPmfIrofac7jmpc9lNFtBbmAR/c4+pxgUdAFcnnCngM93sv+Zb+S1LzFnxyplcbUnH7JE2aU1FN+9rfu/NL5byqsl9momLKQGbZu0HzrUxpzsNnz2uofaX1ZA0eS/y6G3zjo2+bYPbpdbuOzDTdyHYUcu3t33dsh4ud5W0fW6rSefnVqCgeGAg3Mce9VrnSLTBxpWvmpK5E3rHY+w7QaA7jPGRaO0qoa/0GbZsf9uvwaCcDqhj1UZxAsuMCIBvGflR9j3Kld8iOOYGMYmhiJRyc/WfAR8C74ouweDT3INOQVw== rsa-key-20201214"
+}
+
+#creating security group 
+resource "aws_security_group" "webserver_sg" {
+  name        = "terraform_ec2_sg"
+
+  ingress {
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 22
+    to_port     = 22
+  }
+
+  ingress {
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 8080
+    to_port     = 8080
+  }
+
+  ingress {
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 443
+    to_port     = 443
+  }
+
+  egress {
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    to_port     = 0
+  }
+
+  tags = {
+    Name = "ec2-private-sg"
+  }
+}
+
+#Output Variables
+output "instance_private_ip" {
+  value = aws_instance.webserver.private_ip
+}
+output "instance_public_ip" {
+  value = aws_instance.webserver.public_ip
+}
